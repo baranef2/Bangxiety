@@ -6,12 +6,12 @@ public class Player : MonoBehaviour
 {
 
     [SerializeField]
-    public float totalBullets = 0;
+    public float totalAmmo = 0;
     [SerializeField]
-    public void getAmmo()
+    public void AddAmmo(int amount)
         {
-        totalBullets +=1;
-        Debug.Log("Ammo: " + totalBullets);
+        totalAmmo += amount;
+        Debug.Log("Player Ammo: " + totalAmmo);
     }
 
 
