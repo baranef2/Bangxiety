@@ -1,30 +1,44 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+[DisallowMultipleComponent]
+[RequireComponent(typeof(Collider))]
 public class Get_Ammo : MonoBehaviour
 {
-    private Camera = mainCamera;
-    public void OnMouseDown()
+    [SerializeField] private Player player;
+    private void Reset()
     {
-        Player player = FindObjectOfType<Player>();
-        if (player != null)
-        {
-            player.getAmmo();
-           
-        }
+        if (!TryGetComponent<Collider>(out _))
+            gameObject.AddComponent<BoxCollider>();
     }
+
+    private void OnMouseDown()
+    {
+        // Inspector’dan atanmamýþsa sahnede ilk Player’ý bul
+        if (player == null)
+            player = FindFirstObjectByType<Player>(); // Unity 2022.3’te mevcut
+
+        if (player == null)
+        {
+            Debug.LogWarning("Get_Ammo: Sahne içinde Player bulunamadý.");
+            return;
+        }
+
+        player.AddAmmo(1);
+    }
+}
+    
 }
     
     // Start is called before the first frame update
     void Start()
     {
-        mainCamera = Camera.main;   
-}
+    
+    }
 
     // Update is called once per frame
     void Update()
     {
         
     }
-}
+
