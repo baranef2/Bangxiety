@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace JamDemo
 {
@@ -65,7 +64,7 @@ namespace JamDemo
             return gameSession;
         }
 
-        public async Task<bool> StartRound(GameSession gameSession, Dictionary<string, PlayerAction> playerActions)
+        public bool StartRound(GameSession gameSession, Dictionary<string, PlayerAction> playerActions)
         {
             if (gameSession == null || !gameSession.IsActive)
             {
