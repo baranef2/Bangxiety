@@ -9,41 +9,30 @@ namespace JamDemo.Pages
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("=== 007 JAM DEMO ===");
-                Console.WriteLine("[S] Singleplayer (1 Oyuncu + 3 Bot)");
-                Console.WriteLine("[M] Multiplayer (DEVRE DISI)");
+                Console.WriteLine("=== BANGXÝETY! JAM DEMO ===");
+                Console.WriteLine("[S] Singleplayer (1 Player + 3 Bot)");
+                Console.WriteLine("[M] Multiplayer (DISABLED)");
                 Console.WriteLine("[Q] Quit");
-                Console.Write("Secim: ");
+                Console.Write("Choose: ");
 
                 var key = Console.ReadKey(intercept: true).Key;
                 if (key == ConsoleKey.S)
                 {
-                    ShowLobby(); // ayrý dosya yerine, ayný sýnýf içindeki method
+                    Lobby.Show(); // LOBBY'E GEÇ (ayrý dosya)
+                    // Lobby'den dönünce menü tekrar gösterilecek.
                 }
                 else if (key == ConsoleKey.M)
                 {
                     Console.WriteLine("\nMultiplayer bu jam buildinde devre dýþý.");
+                    Console.WriteLine("Devam etmek için bir tusa basin...");
                     Console.ReadKey();
                 }
                 else if (key == ConsoleKey.Q)
                 {
                     Environment.Exit(0);
                 }
-                // aksi halde döngü tekrar baþa sarar
+                // aksi halde döngü devam eder (menü tekrar görünür)
             }
-        }
-
-        private static void ShowLobby()
-        {
-            Console.Clear();
-            Console.WriteLine("=== LOBBY (Singleplayer) ===");
-            Console.WriteLine("Kurulum: 1 Oyuncu + 3 Bot");
-            Console.WriteLine("Round Secim Süreleri: 4 kisi=5sn, 3 kisi=4sn, 2 kisi=1sn");
-            Console.WriteLine();
-            Console.WriteLine("[ENTER] Devam (Match akisi sonraki adimda eklenecek)");
-            Console.ReadLine();
-
-            // Þimdilik sadece geri dön -> menü döngüsüne
         }
     }
 }
