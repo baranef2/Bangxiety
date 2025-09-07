@@ -5,40 +5,46 @@ public class BotPlayer : MonoBehaviour
 {
     private Player player;
 
-    private void Awake() => player = GetComponent<Player>();
-
-    public void ChooseCard(Player[] targets)
+    private void Awake()
     {
-        if (player == null || !player.IsAlive) return;
+        player = GetComponent<Player>();
+        Debug.Log($"[BotPlayer] {name} - Baþlangýç: Status={player.Status}, IsAlive={player.IsAlive}");
+    }
 
-        int choice = Random.Range(0, 3); // 0:Get_Ammo, 1:Shoot, 2:Protect
+
+    public void ChooseCard(Player[] allPlayers)
+    {
+        Debug.Log($"[BotPlayer] {name} ChooseCard() çaðrýldý");
+        if (GameManager.Instance.HasChosen(player)) return;
+        if (player == null || !player.IsAlive)
+        {
+            Debug.LogWarning($"[BotPlayer] {name} iþlem yapmýyor çünkü ölü.");
+            return;
+        }
+            int choice = Random.Range(0, 3); // 0:GetAmmo 1:Shoot 2:Protect
         if (choice == 1 && player.TotalAmmo <= 0) choice = 0;
 
         switch (choice)
         {
-            case 0: // Get_Ammo
-                player.AddAmmo(1);
-                Debug.Log($"{name} BOT -> Get_Ammo");
+            case 0:
+                GameManager.Instance.SelectGetAmmo(player);
                 break;
 
-            case 1: // Shoot
-                if (player.UseAmmo(1))
-                {
-                    // Kendisi dýþýndaki rastgele bir hedef
-                    var validTargets = System.Array.FindAll(targets, t => t != null && t != player && t.IsAlive);
-                    if (validTargets.Length > 0)
-                    {
-                        var target = validTargets[Random.Range(0, validTargets.Length)];
-                        GameManager.Instance.RegisterShoot(player, target);
-                        Debug.Log($"{name} BOT -> Shoot -> {target.name}");
-                    }
-                }
+            case 1:
+                var targets = System.Array.FindAll(
+                    allPlayers,
+                    p => p && p.IsAlive && !ReferenceEquals(p, player)
+                );
+                if (targets.Length == 0) { GameManager.Instance.SelectGetAmmo(player); break; }
+                var t = targets[Random.Range(0, targets.Length)];
+                GameManager.Instance.SelectShoot(player, t);  // SelectShoot tekrar canlý/kendisi kontrol eder
                 break;
 
-            case 2: // Protect
-                GameManager.Instance.RegisterProtect(player);
-                Debug.Log($"{name} BOT -> Protect");
+            case 2:
+                GameManager.Instance.SelectProtect(player);
                 break;
         }
     }
+
 }
+

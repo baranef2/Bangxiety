@@ -1,16 +1,23 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+public enum CardChoice { None, GetAmmo, Shoot, Protect, Execute }
+
+public class RoundAction
+{
+    public CardChoice choice = CardChoice.None;
+    public Player target = null;
+}
+
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    [Header("Mermi Prefab")]
+    [Header("Prefabs")]
     [SerializeField] private GameObject bulletPrefab;
 
-    // shooter -> target
-    private readonly Dictionary<Player, Player> shootActions = new();
-    private readonly HashSet<Player> protectActions = new();
+    // Bu raundda herkesin seçimi
+    private readonly Dictionary<Player, RoundAction> choices = new();
 
     private void Awake()
     {
@@ -18,67 +25,108 @@ public class GameManager : MonoBehaviour
         Instance = this;
     }
 
-    // --- Round API ---
-    public void RegisterShoot(Player shooter, Player target)
+    // ---- SEÇÝM API'si ----
+    public bool HasChosen(Player p)
     {
-        if (shooter == null || target == null) return;
-        shootActions[shooter] = target;
+        return choices.TryGetValue(p, out var a) && a.choice != CardChoice.None;
     }
 
-    public void RegisterProtect(Player player)
+    RoundAction Ensure(Player p)
     {
-        if (player == null) return;
-        protectActions.Add(player);
+        if (!choices.TryGetValue(p, out var a))
+        {
+            a = new RoundAction();
+            choices[p] = a;
+        }
+        return a;
     }
 
+    public bool SelectGetAmmo(Player p)
+    {
+        var a = Ensure(p);
+        if (a.choice != CardChoice.None) { Debug.Log($"{p.name} zaten {a.choice} seçti."); return false; }
+        a.choice = CardChoice.GetAmmo;
+        Debug.Log($"{p.name} kart seçti: GET_AMMO");
+        return true;
+    }
+
+    public bool SelectProtect(Player p)
+    {
+        var a = Ensure(p);
+        if (a.choice != CardChoice.None) { Debug.Log($"{p.name} zaten {a.choice} seçti."); return false; }
+        a.choice = CardChoice.Protect;
+        Debug.Log($"{p.name} kart seçti: PROTECT");
+        return true;
+    }
+
+    public bool SelectShoot(Player shooter, Player target)
+    {
+        var a = Ensure(shooter);
+
+        if (a.choice != CardChoice.None) { Debug.Log($"{shooter.name} zaten {a.choice} seçti."); return false; }
+        if (shooter == null || !shooter.IsAlive) { Debug.Log($"{shooter?.name} ölü, SHOOT seçemez."); return false; }
+        if (target == null || !target.IsAlive) { Debug.Log("Hedef ölü veya null, SHOOT reddedildi."); return false; }
+        if (ReferenceEquals(shooter, target)) { Debug.Log("Oyuncu kendini hedefleyemez."); return false; }
+
+        // Mermiyi seçim ANINDA rezerve et (exploit'i kapat)
+        if (!shooter.UseAmmo(1)) { Debug.Log($"{shooter.name} yeterli mermi yok."); return false; }
+
+        a.choice = CardChoice.Shoot;
+        a.target = target;
+        Debug.Log($"{shooter.name} kart seçti: SHOOT -> {target.name}");
+        return true;
+    }
+
+
+    // ---- ROUND UYGULAMA ----
     public void ExecuteRound()
     {
-        // 1) Protect’leri etkinleþtir
-        foreach (var p in protectActions)
-            p.EnableProtection();
+        // 1) Protect'leri etkinleþtir
+        foreach (var kv in choices)
+            if (kv.Value.choice == CardChoice.Protect)
+                kv.Key.EnableProtection();
 
-        // 2) Shoot aksiyonlarýný uygula (mermi spawn + sonuç)
-        foreach (var kv in shootActions)
+        // 2) Shoot'larý uygula (mermi + hasar)
+        // 2) Shoot'larý uygula (görsel + etki)
+        // NOT: Mermi SEÇÝMDE düþürüldü; burada tekrar düþürme yok!
+        foreach (var kv in choices)
         {
             var shooter = kv.Key;
-            var target = kv.Value;
+            var a = kv.Value;
 
-            // Mermi görseli
-            SpawnBullet(shooter.transform.position, target.transform);
+            if (a.choice != CardChoice.Shoot || !shooter.IsAlive) continue;
 
-            // Sonuç: Protect varsa ölmez, yoksa ölür
-            if (!target.IsProtected && target.IsAlive)
-                target.Kill();
+            if (bulletPrefab)
+                SpawnBullet(shooter.transform.position, a.target.transform);
+
+            if (!a.target.IsProtected && a.target.IsAlive)
+                a.target.Kill();
             else
-                Debug.Log($"{target.name} korundu.");
+                Debug.Log($"{a.target.name} korundu (Shoot etkisiz).");
         }
 
-        // 3) Temizlik ve bir sonraki round'a hazýrlýk
-        shootActions.Clear();
-        protectActions.Clear();
 
+        // 3) Get_Ammo'larý uygula
+        // 3) Get_Ammo'larý uygula (SADECE YAÞAYANLARA)
+        foreach (var kv in choices)
+            if (kv.Value.choice == CardChoice.GetAmmo && kv.Key.IsAlive)
+                kv.Key.AddAmmo(1);
+
+
+        // 4) Temizlik
         foreach (var p in FindObjectsOfType<Player>())
             p.ResetProtection();
 
+        choices.Clear();
         Debug.Log("Round bitti.");
     }
 
     private void SpawnBullet(Vector3 from, Transform to)
     {
-        if (bulletPrefab == null)
-        {
-            Debug.LogWarning("GameManager: bulletPrefab atanmamýþ.");
-            return;
-        }
-
-        var bulletGO = Instantiate(bulletPrefab, from, Quaternion.identity);
-        if (bulletGO.TryGetComponent<Bullet>(out var bullet))
-        {
-            bullet.Initialize(to);
-        }
-        else
-        {
-            Debug.LogWarning("Bullet prefabýnda Bullet scripti yok.");
-        }
+        var go = Instantiate(bulletPrefab, from, Quaternion.identity);
+        var b = go.GetComponent<Bullet>();
+        if (b) b.Initialize(to);
     }
+   
+
 }

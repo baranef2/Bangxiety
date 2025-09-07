@@ -8,10 +8,10 @@ public class Get_Ammo : MonoBehaviour
 
     private void Awake()
     {
-        if (humanPlayer == null)
+        if (!humanPlayer)
         {
             var go = GameObject.FindGameObjectWithTag("HumanPlayer");
-            if (go != null) humanPlayer = go.GetComponent<Player>();
+            if (go) humanPlayer = go.GetComponent<Player>();
         }
     }
 
@@ -22,12 +22,11 @@ public class Get_Ammo : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (humanPlayer == null)
-        {
-            Debug.LogError("Get_Ammo: HumanPlayer bulunamadý (Tag kontrol et).");
-            return;
-        }
+        
+        if (!humanPlayer.IsAlive) { Debug.Log("Ölü oyuncu kart seçemez."); return; }
+        if (!humanPlayer) { Debug.LogError("Get_Ammo: HumanPlayer yok."); return; }
+        if (GameManager.Instance.HasChosen(humanPlayer)) { Debug.Log("Bu raundda zaten seçim yaptýn."); return; }
 
-        humanPlayer.AddAmmo(1);
+        GameManager.Instance.SelectGetAmmo(humanPlayer); // etkisi ExecuteRound’da
     }
 }

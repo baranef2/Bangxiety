@@ -1,5 +1,6 @@
 using UnityEngine;
 
+
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Collider))]
 public class Shoot : MonoBehaviour
@@ -8,11 +9,15 @@ public class Shoot : MonoBehaviour
 
     private void Awake()
     {
-        if (humanPlayer == null)
+        if (!humanPlayer)
         {
             var go = GameObject.FindGameObjectWithTag("HumanPlayer");
-            if (go != null) humanPlayer = go.GetComponent<Player>();
+            if (go) humanPlayer = go.GetComponent<Player>();
         }
+
+        // Kart mutlaka týklanabilir olsun
+        if (TryGetComponent<Collider>(out var col) && col.isTrigger)
+            col.isTrigger = false;
     }
 
     private void Reset()
@@ -22,37 +27,29 @@ public class Shoot : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (humanPlayer == null)
-        {
-            Debug.LogError("Shoot: HumanPlayer bulunamadý (Tag kontrol et).");
-            return;
-        }
+        // TEÞHÝS LOG’U: Neden açýlmýyor?
+        Debug.Log($"[Shoot] Click -> " +
+            $"human={(humanPlayer ? humanPlayer.name : "NULL")}, " +
+            $"alive={(humanPlayer ? humanPlayer.IsAlive : false)}, " +
+            $"hasChosen={(humanPlayer ? GameManager.Instance.HasChosen(humanPlayer) : false)}, " +
+            $"ammo={(humanPlayer ? humanPlayer.TotalAmmo : -1)}");
 
-        if (humanPlayer.TotalAmmo <= 0)
-        {
-            Debug.Log("Yeterli mermi yok. (HumanPlayer)");
-            return;
-        }
+        if (!humanPlayer) { Debug.LogError("Shoot: HumanPlayer bulunamadý (Tag 'HumanPlayer' verildi mi?)."); return; }
+        if (!humanPlayer.IsAlive) { Debug.Log("Ölü oyuncu kart seçemez."); return; }
+        if (GameManager.Instance.HasChosen(humanPlayer)) { Debug.Log("Bu raundda zaten seçim yaptýn."); return; }
+        if (humanPlayer.TotalAmmo <= 0) { Debug.Log("Yeterli mermi yok."); return; }
 
-        if (TargetSelectorUI.Instance == null)
-        {
-            Debug.LogError("Shoot: TargetSelectorUI sahnede yok.");
-            return;
-        }
+        if (TargetSelectorUI.Instance == null) { Debug.LogError("Shoot: TargetSelectorUI sahnede yok."); return; }
 
-        Debug.Log("Shoot: TargetSelectorUI çaðrýlýyor...");
+        Debug.Log("[Shoot] TargetSelectorUI açýlýyor…");
         TargetSelectorUI.Instance.ShowTargetOptions(humanPlayer, OnTargetSelected);
+        
+
     }
 
     private void OnTargetSelected(Player target)
     {
-        if (!humanPlayer.UseAmmo(1))
-        {
-            Debug.Log("Mermi tüketilemedi.");
-            return;
-        }
-
-        GameManager.Instance.RegisterShoot(humanPlayer, target);
-        Debug.Log($"{humanPlayer.name} -> SHOOT -> {target.name} kaydedildi.");
+        bool ok = GameManager.Instance.SelectShoot(humanPlayer, target);
+        Debug.Log(ok ? $"[Shoot] Hedef seçildi: {target.name}" : "[Shoot] Seçim reddedildi.");
     }
 }

@@ -120,7 +120,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   totalAmmo: 0
-  isHuman: 0
 --- !u!114 &-3982392901665370727
 MonoBehaviour:
   m_ObjectHideFlags: 0

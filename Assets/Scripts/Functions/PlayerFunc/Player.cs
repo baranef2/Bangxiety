@@ -1,21 +1,29 @@
 using UnityEngine;
+//using Assets.Scripts.Enums.LifeStatus;
 
+[DisallowMultipleComponent]
 public class Player : MonoBehaviour
 {
     [SerializeField] private int totalAmmo = 0;
     public int TotalAmmo => totalAmmo;
 
     public bool IsProtected { get; private set; } = false;
-    public bool IsAlive { get; private set; } = true;
+    public enum LifeStatus { Alive, Dead }
+
+
+    public LifeStatus Status { get; private set; } = LifeStatus.Alive;
+    public bool IsAlive => Status == LifeStatus.Alive;
 
     public void AddAmmo(int amount)
     {
+        if (!IsAlive) return;
         totalAmmo += amount;
         Debug.Log($"{name} -> AddAmmo(+{amount}) | Ammo={totalAmmo}");
     }
 
     public bool UseAmmo(int amount)
     {
+        if (!IsAlive) return false;
         if (totalAmmo < amount) return false;
         totalAmmo -= amount;
         Debug.Log($"{name} -> UseAmmo(-{amount}) | Ammo={totalAmmo}");
@@ -28,7 +36,8 @@ public class Player : MonoBehaviour
     public void Kill()
     {
         if (!IsAlive) return;
-        IsAlive = false;
+        Status = LifeStatus.Dead;
+
 
         // Sahnede kalsýn, görsel olarak "öldü"
         var r = GetComponentInChildren<Renderer>();
