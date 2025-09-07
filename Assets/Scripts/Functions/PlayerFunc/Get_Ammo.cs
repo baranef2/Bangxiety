@@ -4,7 +4,16 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class Get_Ammo : MonoBehaviour
 {
-    [SerializeField] private Player player;
+    [SerializeField] private Player humanPlayer;
+
+    private void Awake()
+    {
+        if (humanPlayer == null)
+        {
+            var go = GameObject.FindGameObjectWithTag("HumanPlayer");
+            if (go != null) humanPlayer = go.GetComponent<Player>();
+        }
+    }
 
     private void Reset()
     {
@@ -13,9 +22,12 @@ public class Get_Ammo : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (player == null) player = FindFirstObjectByType<Player>();
-        if (player == null) { Debug.LogWarning("Get_Ammo: Sahnede Player yok."); return; }
+        if (humanPlayer == null)
+        {
+            Debug.LogError("Get_Ammo: HumanPlayer bulunamadý (Tag kontrol et).");
+            return;
+        }
 
-        player.AddAmmo(1);
+        humanPlayer.AddAmmo(1);
     }
 }

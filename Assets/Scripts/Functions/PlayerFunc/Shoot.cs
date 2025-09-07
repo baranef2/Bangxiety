@@ -4,7 +4,16 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class Shoot : MonoBehaviour
 {
-    [SerializeField] private Player player;
+    [SerializeField] private Player humanPlayer;
+
+    private void Awake()
+    {
+        if (humanPlayer == null)
+        {
+            var go = GameObject.FindGameObjectWithTag("HumanPlayer");
+            if (go != null) humanPlayer = go.GetComponent<Player>();
+        }
+    }
 
     private void Reset()
     {
@@ -13,43 +22,37 @@ public class Shoot : MonoBehaviour
 
     private void OnMouseDown()
     {
-        Debug.Log("Shoot kartýna týklandý!"); // TEST
-
-        if (player == null)
+        if (humanPlayer == null)
         {
-            player = FindFirstObjectByType<Player>();
-            Debug.Log("Player bulunmaya çalýþýldý: " + (player != null ? player.name : "BULUNAMADI"));
-        }
-
-        if (player == null) return;
-
-        if (player.TotalAmmo <= 0)
-        {
-            Debug.Log("Yeterli mermi yok. Ammo=" + player.TotalAmmo);
+            Debug.LogError("Shoot: HumanPlayer bulunamadý (Tag kontrol et).");
             return;
         }
 
-        Debug.Log("Shoot kartý seçildi. TargetSelectorUI çaðrýlýyor...");
+        if (humanPlayer.TotalAmmo <= 0)
+        {
+            Debug.Log("Yeterli mermi yok. (HumanPlayer)");
+            return;
+        }
+
         if (TargetSelectorUI.Instance == null)
         {
-            Debug.LogError("TargetSelectorUI sahnede yok!");
+            Debug.LogError("Shoot: TargetSelectorUI sahnede yok.");
             return;
         }
 
-        TargetSelectorUI.Instance.ShowTargetOptions(player, OnTargetSelected);
+        Debug.Log("Shoot: TargetSelectorUI çaðrýlýyor...");
+        TargetSelectorUI.Instance.ShowTargetOptions(humanPlayer, OnTargetSelected);
     }
 
     private void OnTargetSelected(Player target)
     {
-        // Mermiyi hemen harca ve aksiyonu kaydet
-        if (player.UseAmmo(1))
-        {
-            GameManager.Instance.RegisterShoot(player, target);
-            Debug.Log($"{player.name} -> SHOOT -> {target.name} kaydedildi.");
-        }
-        else
+        if (!humanPlayer.UseAmmo(1))
         {
             Debug.Log("Mermi tüketilemedi.");
+            return;
         }
+
+        GameManager.Instance.RegisterShoot(humanPlayer, target);
+        Debug.Log($"{humanPlayer.name} -> SHOOT -> {target.name} kaydedildi.");
     }
 }

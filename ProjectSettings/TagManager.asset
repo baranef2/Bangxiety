@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Bullet
   - TargetUI
+  - HumanPlayer
   layers:
   - Default
   - TransparentFX
@@ -42,4 +43,10 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: BackGround
+    uniqueID: 167387609
+    locked: 0
+  - name: ForeGround
+    uniqueID: 1896495641
     locked: 0

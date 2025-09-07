@@ -3,8 +3,6 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [SerializeField] private int totalAmmo = 0;
-    public bool isHuman = false;
-
     public int TotalAmmo => totalAmmo;
 
     public bool IsProtected { get; private set; } = false;
@@ -13,13 +11,14 @@ public class Player : MonoBehaviour
     public void AddAmmo(int amount)
     {
         totalAmmo += amount;
-        Debug.Log($"{name} Ammo: {totalAmmo}");
+        Debug.Log($"{name} -> AddAmmo(+{amount}) | Ammo={totalAmmo}");
     }
 
     public bool UseAmmo(int amount)
     {
         if (totalAmmo < amount) return false;
         totalAmmo -= amount;
+        Debug.Log($"{name} -> UseAmmo(-{amount}) | Ammo={totalAmmo}");
         return true;
     }
 
@@ -31,16 +30,10 @@ public class Player : MonoBehaviour
         if (!IsAlive) return;
         IsAlive = false;
 
-        // Kaybolmak yerine "öldü" görseli verelim
-        var renderer = GetComponentInChildren<Renderer>();
-        if (renderer != null)
-            renderer.material.color = Color.red; // kýrmýzýya boyansýn
-
-        // Ýstersen rigidbody ekleyip yere düþmesini saðlayabilirsin:
-        // var rb = gameObject.AddComponent<Rigidbody>();
-        // rb.mass = 5f;
+        // Sahnede kalsýn, görsel olarak "öldü"
+        var r = GetComponentInChildren<Renderer>();
+        if (r != null) r.material.color = Color.red;
 
         Debug.Log($"{name} öldü!");
     }
-
 }
