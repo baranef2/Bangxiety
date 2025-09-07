@@ -45,4 +45,7 @@ public class Player : MonoBehaviour
 
         Debug.Log($"{name} öldü!");
     }
+    public int TotalGetAmmoCount { get; private set; } = 0;
+    public void IncrementGetAmmoCount() => TotalGetAmmoCount++;
+
 }

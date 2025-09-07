@@ -15,6 +15,13 @@ public class GameManager : MonoBehaviour
 
     [Header("Prefabs")]
     [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private GameObject executerPrefab;
+    private void SpawnExecuter(Vector3 from, Transform to)
+    {
+        var go = Instantiate(executerPrefab, from, Quaternion.identity);
+        var b = go.GetComponent<Bullet>(); // ya da özel Executer.cs
+        if (b) b.Initialize(to);
+    }
 
     // Bu raundda herkesin seçimi
     private readonly Dictionary<Player, RoundAction> choices = new();
@@ -46,10 +53,12 @@ public class GameManager : MonoBehaviour
         var a = Ensure(p);
         if (a.choice != CardChoice.None) { Debug.Log($"{p.name} zaten {a.choice} seçti."); return false; }
         a.choice = CardChoice.GetAmmo;
+
+        p.IncrementGetAmmoCount();  // <<--- EKLENDÝ
+
         Debug.Log($"{p.name} kart seçti: GET_AMMO");
         return true;
     }
-
     public bool SelectProtect(Player p)
     {
         var a = Ensure(p);
@@ -103,7 +112,9 @@ public class GameManager : MonoBehaviour
                 a.target.Kill();
             else
                 Debug.Log($"{a.target.name} korundu (Shoot etkisiz).");
+
         }
+
 
 
         // 3) Get_Ammo'larý uygula
@@ -116,6 +127,24 @@ public class GameManager : MonoBehaviour
         // 4) Temizlik
         foreach (var p in FindObjectsOfType<Player>())
             p.ResetProtection();
+        foreach (var kv in choices)
+        {
+            var shooter = kv.Key;
+            var a = kv.Value;
+
+            if (a.choice == CardChoice.Execute && shooter.IsAlive)
+            {
+                if (executerPrefab)
+                    SpawnExecuter(shooter.transform.position, a.target.transform);
+
+                // Execute korumayý deliyor
+                if (a.target.IsAlive)
+                    a.target.Kill();
+                else
+                    Debug.Log($"{a.target.name} zaten ölüydü (Execute boþa).");
+            }
+        }
+
 
         choices.Clear();
         Debug.Log("Round bitti.");
@@ -127,6 +156,47 @@ public class GameManager : MonoBehaviour
         var b = go.GetComponent<Bullet>();
         if (b) b.Initialize(to);
     }
-   
+
+    public bool SelectExecute(Player shooter, Player target)
+    {
+        var a = Ensure(shooter);
+
+        if (a.choice != CardChoice.None) return false;
+        if (shooter == null || !shooter.IsAlive) return false;
+        if (target == null || !target.IsAlive) return false;
+        if (ReferenceEquals(shooter, target)) return false;
+
+        if (shooter.TotalGetAmmoCount < 5)
+        {
+            Debug.Log($"{shooter.name} yeterli execute hakký yok.");
+            return false;
+        }
+
+        if (shooter.TotalAmmo < 5)
+        {
+            Debug.Log($"{shooter.name} execute için yeterli mermiye sahip deðil.");
+            return false;
+        }
+        Debug.Log($"{shooter.name} ammo BEFORE: {shooter.TotalAmmo}");
+
+        bool used = shooter.UseAmmo(5);
+
+        Debug.Log($"UseAmmo(5) sonucu: {used}");
+        Debug.Log($"{shooter.name} ammo AFTER: {shooter.TotalAmmo}");
+
+        if (!used)
+        {
+            return false;            
+        }
+
+        a.choice = CardChoice.Execute;
+        a.target = target;
+        Debug.Log($"{shooter.name} kart seçti: EXECUTE -> {target.name}");
+        return true;
+
+    }
+
+
+
 
 }
