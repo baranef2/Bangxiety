@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9036715226549595803}
   - component: {fileID: 6591553603227397954}
   - component: {fileID: 2731165143381463275}
-  - component: {fileID: -7479910063342604994}
+  - component: {fileID: 1337807877746602143}
   m_Layer: 0
   m_Name: Shoot
   m_TagString: Untagged
@@ -63,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 22262639920f43d6be32430e4e58350d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -104,9 +104,9 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &-7479910063342604994
+  m_Size: {x: 1, y: 1.0026189, z: 1}
+  m_Center: {x: 0, y: 0.0013094693, z: 0}
+--- !u!114 &1337807877746602143
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -118,4 +118,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76a6df3bb7da8344b9d0b1916252bec0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: -3246119751488658427, guid: df5014576c23ad54b9e488fd53a24662, type: 3}
+  humanPlayer: {fileID: 0}
